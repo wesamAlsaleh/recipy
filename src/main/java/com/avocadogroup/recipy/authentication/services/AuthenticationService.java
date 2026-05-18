@@ -1,15 +1,39 @@
 package com.avocadogroup.recipy.authentication.services;
 
+import com.avocadogroup.recipy.authentication.UserDetailsImpl;
+import com.avocadogroup.recipy.authentication.dtos.AuthenticationTokensResponse;
+import com.avocadogroup.recipy.authentication.dtos.LoginUserRequest;
+import com.avocadogroup.recipy.authentication.dtos.RegisterUserRequest;
+import com.avocadogroup.recipy.common.exceptions.DuplicateResourceException;
+import com.avocadogroup.recipy.common.exceptions.ResourceNotFoundException;
 import com.avocadogroup.recipy.common.exceptions.UnauthorizedException;
+import com.avocadogroup.recipy.user.User;
+import com.avocadogroup.recipy.user.UserMapper;
+import com.avocadogroup.recipy.user.UserRepository;
+import com.avocadogroup.recipy.user.UserRole;
+import com.avocadogroup.recipy.user.dtos.UserDto;
+import com.avocadogroup.recipy.verificationToken.VerificationToken;
+import com.avocadogroup.recipy.verificationToken.VerificationTokenRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 
 @Service
 @AllArgsConstructor
 public class AuthenticationService {
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
+    private final VerificationTokenRepository verificationTokenRepository;
+
     /**
      * Extracts the authenticated user's ID from the Security Context.
      *
@@ -58,46 +82,37 @@ public class AuthenticationService {
         var user = new User();
 
         // If the email is already used
-        if (userRepository.existsByEmail(request.getEmail())) {
+        if (userRepository.existsByEmail((request.getEmail()))) {
             throw new DuplicateResourceException("Email already in use");
-        }
-
-        // If the phone number is already used
-        if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
-            throw new DuplicateResourceException("Phone number already in use");
         }
 
         // Set the user fields from request
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setPhoneNumber(request.getPhoneNumber());
         user.setRole(UserRole.USER.toString()); // Assign default role for newly registered users
 
         // Save the user entity to the database
         userRepository.save(user);
-
-        // Trigger email verification workflow after registration
-        emailVerificationService.sendVerificationEmail(new SendEmailVerificationTokenRequest(user));
+//
+//        // Trigger email verification workflow after registration
+//        emailVerificationService.sendVerificationEmail(new SendEmailVerificationTokenRequest(user));
 
         // Return the created entity as a DTO
         return userMapper.toDto(user);
     }
 
-    // Function to verify the user
-    public void verifyUser(String verificationToken) {
-        // Make the token as user
-        emailVerificationService.verifyToken(verificationToken);
-    }
+
+//    /**
+//     * Function to verify the user
+//     * @param verificationToken token to check
+//     */
+//    public void verifyUser(String verificationToken) {
+//        // Make the token as user
+//        emailVerificationService.verifyToken(verificationToken);
+//    }
 
     /**
-     * Authenticates a user and generates an access token.
-     *
-     * <p>This method delegates authentication to the {@link AuthenticationManager}.
-     * If authentication succeeds, the authenticated principal is extracted,
-     * and a JWT access token is generated for the user.</p>
-     *
-     * <p>The generated token is persisted in a {@link UserSessions} entity
-     * along with its expiration date for tracking or revocation purposes.</p>
+     * Authenticates a user and generates an access token
      *
      * @param request the login request containing user credentials (email and password)
      * @return an {@link AuthenticationTokensResponse} containing the generated access token
@@ -122,15 +137,15 @@ public class AuthenticationService {
         var accessToken = jwtService.generateAccessToken(user);
 
         // Create new verification token record
-        var verificationToken = new UserSessions();
+        var verificationToken = new VerificationToken();
 
         // Set the token metadata
         verificationToken.setUser(user);
         verificationToken.setToken(accessToken);
-        verificationToken.setExpiresAt(jwtService.getTokenExpiryDate(accessToken));
+        verificationToken.setExpiryDate(jwtService.getTokenExpiryDate(accessToken));
 
         // Save the token in database for session tracking
-        userSessionsRepository.save(verificationToken);
+        verificationTokenRepository.save(verificationToken);
 
         // Return authentication response containing the access token {accessToken:"abc", refreshToken:"xyz"}
         return new AuthenticationTokensResponse(accessToken);
@@ -185,84 +200,85 @@ public class AuthenticationService {
     @Transactional
     public String logout(String token) {
         // Fetch the token from the db
-        var dbToken = userSessionsRepository.findByToken(token)
+        var dbToken = verificationTokenRepository.findByToken(token)
                 .orElseThrow(() -> new ResourceNotFoundException("Invalid session"));
 
         // If token is revoked do nothing
-        if (dbToken.isRevoked()) {
-            return dbToken.getToken(); // Return the revoked token to reduce db queries (save operation below)
+        if (dbToken.getRevoked()) {
+            // Return the revoked token to reduce db queries (the save operation below)
+            return dbToken.getToken();
         }
 
         // Updates the token's internal state to revoked and sets the revocation time
         dbToken.revokeToken();
 
         // Save the changes
-        userSessionsRepository.save(dbToken);
+        verificationTokenRepository.save(dbToken);
 
-        // Returns the token identifier to confirm the operation is complete
+        // Returns the revoked token to confirm the operation is complete
         return token;
     }
 
-    /**
-     * Updates the password for the currently authenticated user.
-     * <p>
-     * This method verifies the user's identity by matching the provided current password
-     * against the stored hash. If successful, the new password is encrypted and
-     * persisted to the database.
-     * </p>
-     *
-     * @param request A {@link ChangePasswordRequest} containing the current and new passwords.
-     * @return A {@link UserDto} reflecting the updated user state.
-     * @throws org.springframework.security.authentication.BadCredentialsException If the current password provided is incorrect.
-     */
-    public UserDto changePassword(ChangePasswordRequest request) {
-        // Get the user who made the request
-        var userId = getUserIdFromSecurityContext();
+//    /**
+//     * Updates the password for the currently authenticated user.
+//     * <p>
+//     * This method verifies the user's identity by matching the provided current password
+//     * against the stored hash. If successful, the new password is encrypted and
+//     * persisted to the database.
+//     * </p>
+//     *
+//     * @param request A {@link ChangePasswordRequest} containing the current and new passwords.
+//     * @return A {@link UserDto} reflecting the updated user state.
+//     * @throws org.springframework.security.authentication.BadCredentialsException If the current password provided is incorrect.
+//     */
+//    public UserDto changePassword(ChangePasswordRequest request) {
+//        // Get the user who made the request
+//        var userId = getUserIdFromSecurityContext();
+//
+//        // Get the user entity
+//        var user = userRepository.findById(userId)
+//                .orElseThrow(() -> new ResourceNotFoundException("User not found")); // This should never throw since the user is authenticated
+//
+//        // Validates the current password before permitting the change
+//        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+//            throw new BadCredentialsException("The current password you entered is incorrect.");
+//        }
+//
+//        // Encrypts the new password
+//        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+//
+//        // Updates the persistence layer
+//        userRepository.save(user);
+//
+//        // Revoke all active sessions so stolen tokens become invalid after password change
+//        revokeAllUserSessions(userId);
+//
+//        // Return the user as UserDto format
+//        return userMapper.toDto(user);
+//    }
 
-        // Get the user entity
-        var user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found")); // This should never throw since the user is authenticated
-
-        // Validates the current password before permitting the change
-        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-            throw new BadCredentialsException("The current password you entered is incorrect.");
-        }
-
-        // Encrypts the new password
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-
-        // Updates the persistence layer
-        userRepository.save(user);
-
-        // Revoke all active sessions so stolen tokens become invalid after password change
-        revokeAllUserSessions(userId);
-
-        // Return the user as UserDto format
-        return userMapper.toDto(user);
-    }
-
-    /**
-     * Revokes all active sessions for a given user.
-     * <p>
-     * This is used during password change and "logout everywhere" scenarios
-     * to ensure all previously issued tokens are invalidated.
-     * </p>
-     *
-     * @param userId The unique identifier of the user whose sessions should be revoked.
-     */
-    @Transactional
-    public void revokeAllUserSessions(Long userId) {
-        // Fetch all sessions belonging to the user
-        var sessions = userSessionsRepository.findAllByUserId(userId);
-
-        // Revoke each session that has not already been revoked
-        for (var session : sessions) {
-            if (!session.isRevoked()) {
-                session.revokeToken();
-            }
-        }
-
-        // Persist all changes in a single batch
-        userSessionsRepository.saveAll(sessions);
-    }
+//    /**
+//     * Revokes all active sessions for a given user.
+//     * <p>
+//     * This is used during password change and "logout everywhere" scenarios
+//     * to ensure all previously issued tokens are invalidated.
+//     * </p>
+//     *
+//     * @param userId The unique identifier of the user whose sessions should be revoked.
+//     */
+//    @Transactional
+//    public void revokeAllUserSessions(Long userId) {
+//        // Fetch all sessions belonging to the user
+//        var sessions = (VerificationToken) verificationTokenRepository.findAllByUserId((userId));
+//
+//        // Revoke each session that has not already been revoked
+//        for (var session : sessions) {
+//            if (!session.isRevoked()) {
+//                session.revokeToken();
+//            }
+//        }
+//
+//        // Persist all changes in a single batch
+//        userSessionsRepository.saveAll(sessions);
+//    }
 }

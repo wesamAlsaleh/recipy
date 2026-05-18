@@ -14,7 +14,7 @@ import java.time.Instant;
 @Setter
 @Entity
 @Table(name = "verification_tokens")
-public class VerificationToken {
+public class VerificationToken  {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)

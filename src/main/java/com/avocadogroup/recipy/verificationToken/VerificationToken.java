@@ -14,7 +14,7 @@ import java.time.Instant;
 @Setter
 @Entity
 @Table(name = "verification_tokens")
-public class VerificationToken  {
+public class VerificationToken {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -26,39 +26,20 @@ public class VerificationToken  {
     @Column(name = "expiry_date", nullable = false)
     private Instant expiryDate;
 
-    @Column(name = "revoked", nullable = false)
-    private Boolean revoked;
+    @Column(name = "used", nullable = false)
+    private Boolean used = false;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     /**
-     * Function to check if the token is valid
+     * Checks if the token is still valid.
      *
-     * @param userId user id to validate the token
-     * @return true if the token is valid and belongs to the user
+     * @return true if the token has not yet expired, false otherwise.
      */
-    public boolean isValid(Long userId) {
-        // If the token does not belong to the real user
-        if (user == null || user.getId() == null || !user.getId().equals(userId)) {
-            return false;
-        }
-
-        // If the token is expired return false
-        if (expiryDate.isBefore(Instant.now())) {
-            return false;
-        }
-
-        // Return true if the token is not revoked
-        return !revoked;
-    }
-
-    /**
-     * Invalidates the current token by marking it as revoked
-     */
-    public void revokeToken() {
-        // Marks the token as invalid for future authentication checks
-        this.revoked = true;
+    public boolean isValid() {
+        // Return true if the expiration date is AFTER the current time
+        return this.expiryDate != null && this.expiryDate.isAfter(Instant.now());
     }
 }

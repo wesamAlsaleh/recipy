@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 
@@ -32,20 +34,29 @@ public class User {
     private String role;
 
     @Column(name = "status", nullable = false)
-    private Boolean status;
+    private Boolean status = false;
 
     @Column(name = "profile_image_url", length = 2048)
-    private String profileImageUrl;
+    private String profileImageUrl = null;
 
     @Column(name = "email_verified", nullable = false)
-    private Boolean emailVerified;
+    private Boolean emailVerified= false;
 
     @Column(name = "deleted", nullable = false)
-    private Boolean deleted;
+    private Boolean deleted = false;
 
     @Column(name = "created_at", nullable = false)
+    @CreationTimestamp
     private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
+    @UpdateTimestamp
     private Instant updatedAt;
+
+    /**
+     * Function to verify the user
+     */
+    public void verified() {
+        this.emailVerified = true;
+    }
 }

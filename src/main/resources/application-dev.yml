@@ -7,15 +7,19 @@ spring:
   jpa:
     show-sql: true
 
-#  mail:
-#    host: ${SMTP_HOST} # smtp.gmail.com
-#    port: ${SMTP_PORT} # Standard port for TLS/secure email
-#    username: ${SMTP_USERNAME} # Gmail address
-#    password: ${SMTP_PASSWORD} # App Password (No spaces!)
-#    properties:
-#      mail:
-#        smtp:
-#          auth: true
+  mail:
+    host: ${SMTP_HOST} # smtp.gmail.com
+    port: ${SMTP_PORT} # Standard port for TLS/secure email
+    username: ${SMTP_USERNAME} # Gmail address
+    password: ${SMTP_PASSWORD} # App Password (No spaces!)
+    non-reply-email: wesamalsaleh23@gmail.com
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
 #          ssl:
 #            enable: true
 

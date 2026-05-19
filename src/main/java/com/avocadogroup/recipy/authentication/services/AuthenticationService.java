@@ -12,8 +12,10 @@ import com.avocadogroup.recipy.user.UserMapper;
 import com.avocadogroup.recipy.user.UserRepository;
 import com.avocadogroup.recipy.user.UserRole;
 import com.avocadogroup.recipy.user.dtos.UserDto;
+import com.avocadogroup.recipy.userSession.UserSessionService;
 import com.avocadogroup.recipy.verificationToken.VerificationToken;
 import com.avocadogroup.recipy.verificationToken.VerificationTokenRepository;
+import com.avocadogroup.recipy.verificationToken.VerificationTokenService;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,6 +35,8 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final VerificationTokenRepository verificationTokenRepository;
+    private final VerificationTokenService verificationTokenService;
+    private final UserSessionService userSessionService;
 
     /**
      * Extracts the authenticated user's ID from the Security Context.
@@ -77,6 +81,7 @@ public class AuthenticationService {
      * @param request the registration request containing user input data
      * @return a {@link UserDto} representing the newly created user
      */
+    @Transactional
     public UserDto register(RegisterUserRequest request) {
         // Initialize a new User entity
         var user = new User();
@@ -87,29 +92,33 @@ public class AuthenticationService {
         }
 
         // Set the user fields from request
+        user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(UserRole.USER.toString()); // Assign default role for newly registered users
 
         // Save the user entity to the database
         userRepository.save(user);
-//
-//        // Trigger email verification workflow after registration
-//        emailVerificationService.sendVerificationEmail(new SendEmailVerificationTokenRequest(user));
+
+        // send verification token to the user
+        verificationTokenService.sendVerificationEmail(user);
 
         // Return the created entity as a DTO
         return userMapper.toDto(user);
     }
 
 
-//    /**
-//     * Function to verify the user
-//     * @param verificationToken token to check
-//     */
-//    public void verifyUser(String verificationToken) {
-//        // Make the token as user
-//        emailVerificationService.verifyToken(verificationToken);
-//    }
+//    TODO: enhance this doc
+
+    /**
+     * Function to verify the user
+     *
+     * @param verificationToken token to check
+     */
+    public void verifyUser(String verificationToken) {
+        // Make the token as user
+        verificationTokenService.verifyToken(verificationToken);
+    }
 
     /**
      * Authenticates a user and generates an access token
@@ -187,11 +196,7 @@ public class AuthenticationService {
     }
 
     /**
-     * Processes a logout request by invalidating the provided security token.
-     * <p>
-     * This method locates the token in the persistence layer, updates its status
-     * to revoked, and records the timestamp of the action.
-     * </p>
+     * Processes a logout request by invalidating the provided security token
      *
      * @param token The header token string to be invalidated.
      * @return The invalidated token string upon successful revocation.
@@ -199,24 +204,8 @@ public class AuthenticationService {
      */
     @Transactional
     public String logout(String token) {
-        // Fetch the token from the db
-        var dbToken = verificationTokenRepository.findByToken(token)
-                .orElseThrow(() -> new ResourceNotFoundException("Invalid session"));
-
-        // If token is revoked do nothing
-        if (dbToken.getRevoked()) {
-            // Return the revoked token to reduce db queries (the save operation below)
-            return dbToken.getToken();
-        }
-
-        // Updates the token's internal state to revoked and sets the revocation time
-        dbToken.revokeToken();
-
-        // Save the changes
-        verificationTokenRepository.save(dbToken);
-
-        // Returns the revoked token to confirm the operation is complete
-        return token;
+        // Revoke the session and return it
+        return userSessionService.revokeSession(token);
     }
 
 //    /**

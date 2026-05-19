@@ -10,9 +10,10 @@ public class UserService {
     private final UserRepository userRepository;
 
     /**
-     * Function to make the user verified
+     * Marks a user's account as verified
      *
-     * @param user
+     * @param user the user entity to be verified
+     * @throws BadRequestException if the provided user object is null
      */
     public void VerifyUser(User user) {
         // If the user is null throw error

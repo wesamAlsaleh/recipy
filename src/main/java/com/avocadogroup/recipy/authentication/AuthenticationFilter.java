@@ -2,7 +2,6 @@ package com.avocadogroup.recipy.authentication;
 
 import com.avocadogroup.recipy.authentication.services.JwtService;
 import com.avocadogroup.recipy.userSession.UserSessionsRepository;
-import com.avocadogroup.recipy.verificationToken.VerificationTokenRepository;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -62,6 +61,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         }
 
         // Fetch the token from the database
+        // TODO: refactor this
         var dbToken = userSessionsRepository.findByToken((token));
 
         // Check if the token is not available in the DB

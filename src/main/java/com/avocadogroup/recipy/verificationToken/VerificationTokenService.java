@@ -26,7 +26,7 @@ public class VerificationTokenService {
     /**
      * Generates a cryptographically secure, URL-safe string to be used
      * for email verification.
-     * * @return A unique 32-byte Base64 encoded token.
+     * @return A unique 32-byte Base64 encoded token.
      */
     private String generateEmailVerificationToken() {
         // Initialize array of 32 byte
@@ -40,11 +40,10 @@ public class VerificationTokenService {
     }
 
 
-//    TODO: enhance this doc
     /**
-     * Generates and sends a time-sensitive account verification email to a newly registered user.
+     * Generates and sends a time-sensitive account verification email to a newly registered user
      *
-//     * @param request the {@link SendEmailVerificationTokenRequest} containing the recipient user details
+     * @param user the {@link User} entity representing the newly registered account holder to be verified
      * @throws RuntimeException if the email delivery fails or a database persistence issue occurs
      */
     public void sendVerificationEmail(User user) {

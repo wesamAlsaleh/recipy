@@ -9,7 +9,7 @@ public record UserDto(
         String username,
         String email,
         UserRole role,
-        Boolean status,
+        Boolean isActive,
         String verified,
         Instant createdAt
 ) {

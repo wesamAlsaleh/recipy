@@ -30,12 +30,7 @@ public class AuthenticationController {
     }
 
     /**
-     * A secured heartbeat endpoint used to verify authentication and service availability.
-     * <p>
-     * This endpoint requires a valid security context (e.g., JWT or Session) to access.
-     * It returns a simple success message to confirm that the requester is properly
-     * authorized and the server is responsive.
-     * </p>
+     * A secured heartbeat endpoint used to verify authentication and service availability
      *
      * @return A {@link ResponseEntity} containing a "Protected Hello World" success message.
      */
@@ -45,7 +40,7 @@ public class AuthenticationController {
     }
 
     /**
-     * Registers a new user in the system.
+     * Registers a new user in the system with email verification
      *
      * @param registerUserRequest the validated request body containing user registration data
      * @param uriBuilder          utility used to construct the URI of the newly created resource
@@ -82,8 +77,6 @@ public class AuthenticationController {
     /**
      * Authenticates a user and returns a JWT access token
      *
-     * <p>This implementation is stateless and does not use refresh tokens or cookies.</p>
-     *
      * @param request the validated login request containing email and password
      * @return a {@link ResponseEntity} containing the JWT access token
      */
@@ -118,12 +111,6 @@ public class AuthenticationController {
 
     /**
      * Processes user logout by extracting and invalidating the provided JWT.
-     * <p>
-     * This endpoint directly captures the <b>Authorization</b> header. If the header
-     * is valid and follows the Bearer scheme, the token is sent to the
-     * {@code AuthenticationService} for revocation. A 204 No Content status
-     * confirms the operation succeeded.
-     * </p>
      *
      * @param authorizationHeader The raw "Bearer [token]" string from the request headers.
      * @return A {@link ResponseEntity} with HTTP Status 204 (No Content).
@@ -140,7 +127,7 @@ public class AuthenticationController {
         // Isolates the JWT string by removing the "Bearer " prefix
         var token = authorizationHeader.replace("Bearer ", ""); // Remove "Bearer " from "Bearer A2C4"
 
-        // Triggers the backend service to mark the token as revoked
+        // Mark the token as revoked
         var revokedToken = authenticationService.logout(token);
 
         // Returns 204 No Content as the standard successful response for destructive actions

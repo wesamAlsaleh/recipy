@@ -107,13 +107,10 @@ public class AuthenticationService {
         return userMapper.toDto(user);
     }
 
-
-//    TODO: enhance this doc
-
     /**
-     * Function to verify the user
+     * Verifies a user's account using their verification token
      *
-     * @param verificationToken token to check
+     * @param verificationToken the unique token string provided by the user
      */
     public void verifyUser(String verificationToken) {
         // Make the token as user
@@ -182,11 +179,8 @@ public class AuthenticationService {
     }
 
     /**
-     * Retrieves the ID of the currently authenticated user.
-     *
-     * <p>This method delegates the extraction of the user ID to the security context,
-     * which typically holds authentication details for the current request.</p>
-     *
+     * Retrieves the ID of the currently authenticated user from the security context
+
      * @return the unique identifier of the authenticated user, or {@code null}
      * if no authentication information is available
      */
@@ -209,12 +203,7 @@ public class AuthenticationService {
     }
 
 //    /**
-//     * Updates the password for the currently authenticated user.
-//     * <p>
-//     * This method verifies the user's identity by matching the provided current password
-//     * against the stored hash. If successful, the new password is encrypted and
-//     * persisted to the database.
-//     * </p>
+//     * TODO: Updates the password for the currently authenticated user
 //     *
 //     * @param request A {@link ChangePasswordRequest} containing the current and new passwords.
 //     * @return A {@link UserDto} reflecting the updated user state.
@@ -247,7 +236,7 @@ public class AuthenticationService {
 //    }
 
 //    /**
-//     * Revokes all active sessions for a given user.
+//     * TODO: Revokes all active sessions for a given user.
 //     * <p>
 //     * This is used during password change and "logout everywhere" scenarios
 //     * to ensure all previously issued tokens are invalidated.

@@ -37,12 +37,12 @@ public class UserSession {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    // TODO: enhance the javadoc
     /**
-     * Function to check if the token is valid
+     * Evaluates whether this token is valid, active, and belongs to the specified user
      *
-     * @param userId
-     * @return
+     * @param userId the unique identifier of the user attempting to authenticate or verify against this token
+     * @return {@code true} if the token matches the user, has not expired, and is not revoked;
+     *         {@code false} otherwise
      */
     public boolean isValid(Long userId) {
         // If the token does not belong to the real user

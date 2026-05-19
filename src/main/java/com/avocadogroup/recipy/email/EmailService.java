@@ -1,7 +1,6 @@
 package com.avocadogroup.recipy.email;
 
 import com.avocadogroup.recipy.email.dtos.SimpleEmailRequest;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -15,7 +14,7 @@ public class EmailService {
     public EmailService(
             JavaMailSender javaMailSender,
             @Value("${spring.mail.non-reply-email}") String noReplyAddress
-    ) {
+            ) {
         this.javaMailSender = javaMailSender;
         this.noReplyAddress = noReplyAddress;
     }
@@ -47,8 +46,6 @@ public class EmailService {
             throw new RuntimeException(e);
         }
     }
-
-    // Function to send verification
 
     // TODO: Function to send email with attachment
 //     public void sendEmailWithAttachment(CustomEmailRequest request) {}

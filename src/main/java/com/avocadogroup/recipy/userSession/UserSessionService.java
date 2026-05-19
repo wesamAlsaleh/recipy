@@ -12,9 +12,11 @@ public class UserSessionService {
     private final UserSessionsRepository userSessionsRepository;
 
     /**
+     * Revokes an active user session based on the provided session token
      *
-     * @param token
-     * @return
+     * @param token the unique session token string to be invalidated
+     * @return the token string confirming the successful completion of the revocation
+     * @throws ResourceNotFoundException if the provided token does not match any existing session record
      */
     public String revokeSession(String token) {
         // Fetch the token from the sessions record

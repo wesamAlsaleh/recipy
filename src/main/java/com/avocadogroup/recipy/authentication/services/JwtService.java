@@ -17,12 +17,7 @@ public class JwtService {
     private final JwtConfig jwtConfig;
 
     /**
-     * Generate a JWT string with specific user details and a defined lifespan.
-     * <p>
-     * This internal helper sets the 'sub' (Subject) to the user's ID and adds
-     * a custom 'email' claim. The token is cryptographically signed using the
-     * application's secret key to ensure authenticity.
-     * </p>
+     * Generate a JWT string with specific user details and a defined lifespan
      *
      * @param user                     the user entity providing identity data.
      * @param tokenExpirationInSeconds the duration in seconds until the token becomes invalid.

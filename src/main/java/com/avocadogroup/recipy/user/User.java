@@ -33,8 +33,8 @@ public class User {
     @Column(name = "role", nullable = false, length = 20)
     private String role;
 
-    @Column(name = "status", nullable = false)
-    private Boolean status = false;
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;
 
     @Column(name = "profile_image_url", length = 2048)
     private String profileImageUrl = null;

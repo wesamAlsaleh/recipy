@@ -2,7 +2,6 @@ package com.avocadogroup.recipy.authentication;
 
 import com.avocadogroup.recipy.authentication.services.JwtService;
 import com.avocadogroup.recipy.userSession.UserSessionService;
-import com.avocadogroup.recipy.userSession.UserSessionsRepository;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

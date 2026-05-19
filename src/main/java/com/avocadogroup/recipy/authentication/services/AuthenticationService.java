@@ -13,8 +13,6 @@ import com.avocadogroup.recipy.user.UserRepository;
 import com.avocadogroup.recipy.user.UserRole;
 import com.avocadogroup.recipy.user.dtos.UserDto;
 import com.avocadogroup.recipy.userSession.UserSessionService;
-import com.avocadogroup.recipy.verificationToken.VerificationToken;
-import com.avocadogroup.recipy.verificationToken.VerificationTokenRepository;
 import com.avocadogroup.recipy.verificationToken.VerificationTokenService;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,7 +32,6 @@ public class AuthenticationService {
     private final UserMapper userMapper;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
-    private final VerificationTokenRepository verificationTokenRepository;
     private final VerificationTokenService verificationTokenService;
     private final UserSessionService userSessionService;
 
@@ -87,6 +84,7 @@ public class AuthenticationService {
         var user = new User();
 
         // If the email is already used
+        // TODO: refactor this
         if (userRepository.existsByEmail((request.getEmail()))) {
             throw new DuplicateResourceException("Email already in use");
         }
@@ -98,6 +96,7 @@ public class AuthenticationService {
         user.setRole(UserRole.USER.toString()); // Assign default role for newly registered users
 
         // Save the user entity to the database
+        // TODO: refactor this
         userRepository.save(user);
 
         // send verification token to the user
@@ -142,16 +141,12 @@ public class AuthenticationService {
         // Generate an access token (JWT) for the authenticated user
         var accessToken = jwtService.generateAccessToken(user);
 
-        // Create new verification token record
-        var verificationToken = new VerificationToken();
-
-        // Set the token metadata
-        verificationToken.setUser(user);
-        verificationToken.setToken(accessToken);
-        verificationToken.setExpiryDate(jwtService.getTokenExpiryDate(accessToken));
-
-        // Save the token in database for session tracking
-        verificationTokenRepository.save(verificationToken);
+        // Create new session
+        userSessionService.createSession(
+                user,
+                accessToken,
+                jwtService.getTokenExpiryDate(accessToken)
+        );
 
         // Return authentication response containing the access token {accessToken:"abc", refreshToken:"xyz"}
         return new AuthenticationTokensResponse(accessToken);
@@ -168,8 +163,9 @@ public class AuthenticationService {
      */
     public UserDto me() {
         // Retrieve the authenticated user ID from the Security Context (user id is the principal in the security context holder)
-        var userId = getUserIdFromSecurityContext();
+        var userId = getUserId();
 
+        // TODO: refactor this
         // Fetch user from database using the authenticated user ID
         var user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -180,7 +176,7 @@ public class AuthenticationService {
 
     /**
      * Retrieves the ID of the currently authenticated user from the security context
-
+     *
      * @return the unique identifier of the authenticated user, or {@code null}
      * if no authentication information is available
      */

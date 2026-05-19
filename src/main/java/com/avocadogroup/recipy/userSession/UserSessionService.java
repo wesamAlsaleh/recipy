@@ -6,6 +6,8 @@ import com.avocadogroup.recipy.verificationToken.VerificationTokenRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+
 @Service
 @AllArgsConstructor
 public class UserSessionService {
@@ -20,6 +22,20 @@ public class UserSessionService {
     public UserSession fetchUserSession(String token) {
         return userSessionsRepository.findByToken(token)
                 .orElse(null);
+    }
+
+    // Function to create user session
+    public UserSession createSession(User user, String token, Instant expiryDate) {
+        // Create new verification token record
+        var session = new UserSession();
+
+        // Set the token metadata
+        session.setUser(user);
+        session.setToken(token);
+        session.setExpiryDate(expiryDate);
+
+        // Save the token in database for session tracking
+        return userSessionsRepository.save(session);
     }
 
     /**

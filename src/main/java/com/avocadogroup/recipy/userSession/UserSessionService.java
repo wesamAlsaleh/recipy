@@ -12,6 +12,17 @@ public class UserSessionService {
     private final UserSessionsRepository userSessionsRepository;
 
     /**
+     * Fetches a user session from the DB using the provided token in the header
+     *
+     * @param token the unique session token string to look up
+     * @return the matching {@link UserSession} entity, or {@code null} if no session is found
+     */
+    public UserSession fetchUserSession(String token) {
+        return userSessionsRepository.findByToken(token)
+                .orElse(null);
+    }
+
+    /**
      * Revokes an active user session based on the provided session token
      *
      * @param token the unique session token string to be invalidated

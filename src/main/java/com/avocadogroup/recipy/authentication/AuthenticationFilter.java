@@ -1,6 +1,7 @@
 package com.avocadogroup.recipy.authentication;
 
 import com.avocadogroup.recipy.authentication.services.JwtService;
+import com.avocadogroup.recipy.userSession.UserSessionService;
 import com.avocadogroup.recipy.userSession.UserSessionsRepository;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -32,7 +33,7 @@ import java.util.List;
 @AllArgsConstructor
 public class AuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
-    private final UserSessionsRepository userSessionsRepository;
+    private final UserSessionService userSessionsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -61,20 +62,16 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         }
 
         // Fetch the token from the database
-        // TODO: refactor this
-        var dbToken = userSessionsRepository.findByToken((token));
+        var dbToken = userSessionsService.fetchUserSession(token);
 
         // Check if the token is not available in the DB
-        if (dbToken.isEmpty()) {
+        if (dbToken == null) {
             // If so, continue the request without setting authentication (token is ignored) (continue with the next filter in the chain)
             filterChain.doFilter(request, response); // Pass the control to the next filter method
 
             // Stop processing in this filter and the spring security will handle the request
             return;
         }
-
-        // Extract entity from optional
-        var tokenEntity = dbToken.get();
 
         // Extract claims safely if the token is malformed, skip authentication
         Long userId;
@@ -93,7 +90,7 @@ public class AuthenticationFilter extends OncePerRequestFilter {
         }
 
         // Check if the token is not valid
-        if (!tokenEntity.isValid(userId)) {
+        if (!dbToken.isValid(userId)) {
             // If so, continue the request without setting authentication (token is ignored) (continue with the next filter in the chain)
             filterChain.doFilter(request, response);
 

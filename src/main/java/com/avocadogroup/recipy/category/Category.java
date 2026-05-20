@@ -45,4 +45,12 @@ public class Category {
 
         // Update the updated time will @UpdateTimestamp handle it
     }
+
+    /**
+     * Restores a soft-deleted entity.
+     */
+    public void restore(){
+        // Mark as restored
+        this.deleted = false;
+    }
 }

@@ -75,13 +75,42 @@ public class CategoryService {
      * @throws ResourceNotFoundException if no category matches the provided ID
      */
     public CategoryDto deleteCategory(Long categoryId) {
-        // Fetch the category to delete
+        // Fetch the entity to delete
         Category category = fetchCategoryById(categoryId);
+
+        // If the entity is deleted do nothing
+        if (category.getDeleted()) {
+            return toDto(category);
+        }
 
         // Mark as deleted
         category.softDelete();
 
-        // Return the DTO version of the soft deleted category
+        // Return the DTO version of the soft deleted entity
+        return toDto(categoryRepository.save(category));
+    }
+
+
+    /**
+     * Restores a soft-deleted category by its ID and returns its updated DTO.
+     *
+     * @param categoryId the unique identifier of the category to be restored
+     * @return the updated {@link CategoryDto} with its active state reapplied
+     * @throws ResourceNotFoundException if no category matches the provided ID
+     */
+    public CategoryDto restoreCategory(Long categoryId) {
+        // Fetch the entity to restore
+        Category category = fetchCategoryById(categoryId);
+
+        // If the entity is not soft deleted do nothing
+        if (!category.getDeleted()) {
+            return toDto(category);
+        }
+
+        // Restore the soft deleted entity
+        category.restore();
+
+        // Return the DTO version of the updated entity
         return toDto(categoryRepository.save(category));
     }
 
@@ -94,10 +123,10 @@ public class CategoryService {
      * @throws ResourceNotFoundException if no category matches the provided ID
      */
     public CategoryDto updateCategory(Long categoryId, UpdateCategoryRequest request) {
-        // Fetch the category from the db
+        // Fetch the entity from the db
         Category category = fetchCategoryById(categoryId);
 
-        // Update the category name
+        // Update the entity name
         category.setName(request.getName());
 
         // Return the DTO of the updated entity

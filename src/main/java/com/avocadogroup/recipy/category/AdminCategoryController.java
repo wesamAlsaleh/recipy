@@ -71,6 +71,21 @@ public class AdminCategoryController {
     }
 
     /**
+     * Endpoint to restore a soft-deleted category by its ID.
+     *
+     * @param categoryId the unique ID of the category to restore from the URL path
+     * @return a {@link ResponseEntity} containing the restored {@link CategoryDto}
+     */
+    @PutMapping("/{id}/restore")
+    public ResponseEntity<?> restoreCategory(@PathVariable("id") Long categoryId){
+        // Try to restore the deleted category
+        var categoryDto = categoryService.restoreCategory(categoryId);
+
+        // Return the entity details with OK response
+        return ResponseEntity.ok(categoryDto);
+    }
+
+    /**
      * Endpoint to update an existing category's details.
      *
      * @param categoryId the unique ID of the category to update from the URL path

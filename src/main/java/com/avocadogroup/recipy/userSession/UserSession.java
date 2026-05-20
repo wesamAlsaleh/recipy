@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -28,13 +29,14 @@ public class UserSession {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "expiry_date", nullable = false)
-    private Instant expiryDate;
-
     @Column(name = "revoked", nullable = false)
-    private Boolean revoked;
+    private Boolean revoked = false;
+
+    @Column(name = "expiry_date")
+    private Instant expiryDate = null;
 
     @Column(name = "created_at", nullable = false)
+    @CreationTimestamp
     private Instant createdAt;
 
     /**

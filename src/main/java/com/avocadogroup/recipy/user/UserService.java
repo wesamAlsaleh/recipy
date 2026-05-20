@@ -22,7 +22,7 @@ public class UserService {
         }
 
         // Make the user verified
-        user.verified();
+        user.verify();
 
         // Save the changes
         userRepository.save(user);

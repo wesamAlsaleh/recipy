@@ -47,6 +47,7 @@ public class UserSessionService {
      */
     public String revokeSession(String token) {
         // Fetch the token from the sessions record
+        // TODO: refactor this line
         var tokenSession = userSessionsRepository.findByToken(token)
                 .orElseThrow(() -> new ResourceNotFoundException("Invalid session"));
 

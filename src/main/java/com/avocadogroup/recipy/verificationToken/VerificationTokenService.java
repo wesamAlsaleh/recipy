@@ -7,7 +7,6 @@ import com.avocadogroup.recipy.email.EmailService;
 import com.avocadogroup.recipy.email.dtos.SimpleEmailRequest;
 import com.avocadogroup.recipy.user.User;
 import com.avocadogroup.recipy.user.UserService;
-import com.avocadogroup.recipy.verificationToken.dtos.SendEmailVerificationTokenRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -86,6 +85,7 @@ public class VerificationTokenService {
      */
     public void verifyToken(String verificationToken) {
         // Fetch the token from the db
+        // TODO: refactor this
         var token = verificationTokenRepository.findByToken(verificationToken)
                 .orElseThrow(() -> new ResourceNotFoundException("Token not found"));
 

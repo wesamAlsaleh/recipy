@@ -1,3 +1,10 @@
 spring:
   application:
     name: recipy
+
+  profiles:
+    active: "dev"
+
+  config:
+    import: optional:file:.env[.properties]  # This tells Spring to load the .env file and [.properties] to tell Spring to parse the file using the standard Key=Value property format
+

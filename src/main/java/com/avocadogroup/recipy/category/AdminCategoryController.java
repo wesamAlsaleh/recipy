@@ -49,7 +49,7 @@ public class AdminCategoryController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getCategory(@PathVariable("id") Long categoryId) {
         // Retrieves the category
-        var categoryDto = categoryService.getCategoryById(categoryId);
+        var categoryDto = categoryService.readCategory(categoryId);
 
         // Return the entity details with OK response
         return ResponseEntity.ok(categoryDto);

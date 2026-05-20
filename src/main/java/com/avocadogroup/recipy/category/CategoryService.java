@@ -20,7 +20,7 @@ public class CategoryService {
      * @return the matching {@link Category} entity
      * @throws ResourceNotFoundException if the category does not exist in the database
      */
-    private Category fetchCategoryById(Long categoryId) {
+    private Category fetchCategory(Long categoryId) {
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
     }
@@ -42,12 +42,25 @@ public class CategoryService {
      * @return the mapped {@link CategoryDto} representing the category metadata
      * @throws ResourceNotFoundException if the category does not exist in the database
      */
-    public CategoryDto getCategoryById(Long categoryId) {
+    public CategoryDto readCategory(Long categoryId) {
         // Fetch the category by id from the db
-        var category = fetchCategoryById(categoryId);
+        var category = fetchCategory(categoryId);
 
         // Return the DTO version of the category
         return toDto(category);
+    }
+
+    /**
+     * Retrieves a category entity by its ID.
+     *
+     * @param categoryId the unique identifier of the category to retrieve
+     * @return the mapped {@link Category} representing the category entity
+     * @throws ResourceNotFoundException if the category does not exist in the database
+     */
+    public Category getCategory(Long categoryId){
+        // Fetch the category by id from the db
+        // TODO: if soft deleted throw not found exception to client
+        return fetchCategory(categoryId);
     }
 
     /**
@@ -76,7 +89,7 @@ public class CategoryService {
      */
     public CategoryDto deleteCategory(Long categoryId) {
         // Fetch the entity to delete
-        Category category = fetchCategoryById(categoryId);
+        Category category = fetchCategory(categoryId);
 
         // If the entity is deleted do nothing
         if (category.getDeleted()) {
@@ -100,7 +113,7 @@ public class CategoryService {
      */
     public CategoryDto restoreCategory(Long categoryId) {
         // Fetch the entity to restore
-        Category category = fetchCategoryById(categoryId);
+        Category category = fetchCategory(categoryId);
 
         // If the entity is not soft deleted do nothing
         if (!category.getDeleted()) {
@@ -123,14 +136,14 @@ public class CategoryService {
      * @throws ResourceNotFoundException if no category matches the provided ID
      */
     public CategoryDto updateCategory(Long categoryId, UpdateCategoryRequest request) {
-        // Fetch the entity from the db
-        Category category = fetchCategoryById(categoryId);
+            // Fetch the entity from the db
+            Category category = fetchCategory(categoryId);
 
-        // Update the entity name
-        category.setName(request.getName());
+            // Update the entity name
+            category.setName(request.getName());
 
-        // Return the DTO of the updated entity
-        return toDto(categoryRepository.save(category));
+            // Return the DTO of the updated entity
+            return toDto(categoryRepository.save(category));
     }
 
 

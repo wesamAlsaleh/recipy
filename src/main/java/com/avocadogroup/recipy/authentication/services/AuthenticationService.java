@@ -7,10 +7,7 @@ import com.avocadogroup.recipy.authentication.dtos.RegisterUserRequest;
 import com.avocadogroup.recipy.common.exceptions.DuplicateResourceException;
 import com.avocadogroup.recipy.common.exceptions.ResourceNotFoundException;
 import com.avocadogroup.recipy.common.exceptions.UnauthorizedException;
-import com.avocadogroup.recipy.user.User;
-import com.avocadogroup.recipy.user.UserMapper;
-import com.avocadogroup.recipy.user.UserRepository;
-import com.avocadogroup.recipy.user.UserRole;
+import com.avocadogroup.recipy.user.*;
 import com.avocadogroup.recipy.user.dtos.UserDto;
 import com.avocadogroup.recipy.userSession.UserSessionService;
 import com.avocadogroup.recipy.verificationToken.VerificationTokenService;
@@ -34,6 +31,7 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final VerificationTokenService verificationTokenService;
     private final UserSessionService userSessionService;
+    private final UserService userService;
 
     /**
      * Extracts the authenticated user's ID from the Security Context.
@@ -183,6 +181,20 @@ public class AuthenticationService {
     public Long getUserId() {
         // Extracts the user ID from the SecurityContext
         return getUserIdFromSecurityContext();
+    }
+
+    /**
+     * Retrieves the currently authenticated user from the security context.
+     *
+     * @return the matching {@link User} entity belonging to the authenticated session
+     * @throws ResourceNotFoundException if the authenticated user's ID does not exist in the database
+     */
+    public User getAuthenticatedUser() {
+        // Get the authenticated user id
+        var userId = getUserId();
+
+        // Fetch the user details
+        return userService.getUser(userId);
     }
 
     /**

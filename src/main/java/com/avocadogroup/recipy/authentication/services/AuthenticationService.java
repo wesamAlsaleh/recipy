@@ -163,10 +163,8 @@ public class AuthenticationService {
         // Retrieve the authenticated user ID from the Security Context (user id is the principal in the security context holder)
         var userId = getUserId();
 
-        // TODO: refactor this
         // Fetch user from database using the authenticated user ID
-        var user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        var user = userService.getUser(userId);
 
         // Return the user as UserDto format
         return userMapper.toDto(user);

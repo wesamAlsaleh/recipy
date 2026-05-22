@@ -9,6 +9,7 @@ public record UserDto(
         String username,
         String email,
         UserRole role,
+        String avatarUrl,
         Boolean isActive,
         String verified,
         Instant createdAt

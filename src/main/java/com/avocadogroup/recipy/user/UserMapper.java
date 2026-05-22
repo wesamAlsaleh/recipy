@@ -8,5 +8,6 @@ import org.mapstruct.Mapping;
 public interface UserMapper {
     // Dto to expose the user object
     @Mapping(target = "verified", source = "emailVerified")
+    @Mapping(target = "avatarUrl", source = "profileImageUrl")
     UserDto toDto(User user);
 }

@@ -30,6 +30,18 @@ public class RecipeService {
     }
 
     /**
+     * Fetches a recipe by its ID and returns the entity.
+     * Exposed as package-private for use by other services (e.g. IngredientService).
+     *
+     * @param recipeId the ID of the recipe to find
+     * @return the matching {@link Recipe} entity
+     * @throws ResourceNotFoundException if no recipe is found with the given ID
+     */
+    public Recipe getRecipeEntity(Long recipeId) {
+        return fetchRecipe(recipeId);
+    }
+
+    /**
      * Converts a Recipe entity into its corresponding Data Transfer Object.
      *
      * @param recipe the {@link Recipe} entity to convert
@@ -51,7 +63,7 @@ public class RecipeService {
         var recipe = new Recipe();
 
         // Fetch the category or throw resource not found exception
-        var category = categoryService.getCategory(request.getCategoryId());
+        var category = categoryService.getCategoryEntity(request.getCategoryId());
 
         // Fetch the authenticated user details or throw resource not found exception
         var user = authenticationService.getAuthenticatedUser();
@@ -112,7 +124,7 @@ public class RecipeService {
             recipe.setImageUrl(request.getImageUrl());
         if (request.getCategoryId() != null) {
             // Fetch the new category
-            var category = categoryService.getCategory(request.getCategoryId());
+            var category = categoryService.getCategoryEntity(request.getCategoryId());
 
             // Set the new category
             recipe.setCategory(category);

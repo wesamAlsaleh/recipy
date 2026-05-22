@@ -57,7 +57,7 @@ public class CategoryService {
      * @return the mapped {@link Category} representing the category entity
      * @throws ResourceNotFoundException if the category does not exist in the database
      */
-    public Category getCategory(Long categoryId){
+    public Category getCategoryEntity(Long categoryId){
         // Fetch the category by id from the db
         // TODO: if soft deleted throw not found exception to client
         return fetchCategory(categoryId);

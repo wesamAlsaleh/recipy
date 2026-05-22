@@ -1,6 +1,7 @@
 package com.avocadogroup.recipy.recipe;
 
 import com.avocadogroup.recipy.category.Category;
+import com.avocadogroup.recipy.ingredient.Ingredient;
 import com.avocadogroup.recipy.user.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -12,6 +13,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -51,6 +54,9 @@ public class Recipe {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "created_by", nullable = false)
     private User user;
+
+    @OneToMany(mappedBy = "recipe", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Ingredient> ingredients = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false)
     @CreationTimestamp

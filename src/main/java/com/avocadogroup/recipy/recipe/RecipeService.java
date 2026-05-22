@@ -2,12 +2,14 @@ package com.avocadogroup.recipy.recipe;
 
 import com.avocadogroup.recipy.authentication.services.AuthenticationService;
 import com.avocadogroup.recipy.category.CategoryService;
+import com.avocadogroup.recipy.cloudinary.CloudinaryService;
 import com.avocadogroup.recipy.common.exceptions.ResourceNotFoundException;
 import com.avocadogroup.recipy.recipe.dtos.CreateRecipeRequest;
 import com.avocadogroup.recipy.recipe.dtos.RecipeDto;
 import com.avocadogroup.recipy.recipe.dtos.UpdateRecipeRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
@@ -16,6 +18,7 @@ public class RecipeService {
     private final RecipeMapper recipeMapper;
     private final CategoryService categoryService;
     private final AuthenticationService authenticationService;
+    private final CloudinaryService cloudinaryService;
 
     /**
      * Fetches a recipe by its ID.
@@ -58,6 +61,7 @@ public class RecipeService {
      * @return the saved {@link RecipeDto} containing the generated database ID and metadata
      * @throws ResourceNotFoundException if the specified category ID in the request does not exist
      */
+    @Transactional // Ensures rollback on failure
     public RecipeDto createRecipe(CreateRecipeRequest request) {
         // Create entity
         var recipe = new Recipe();
@@ -68,13 +72,19 @@ public class RecipeService {
         // Fetch the authenticated user details or throw resource not found exception
         var user = authenticationService.getAuthenticatedUser();
 
+        // Try to upload the image to the cloud
+        String imageUrl = null;
+        if (request.getImage() != null && !request.getImage().isEmpty()) {
+            imageUrl = cloudinaryService.uploadFile(request.getImage(), "recipes");
+        }
+
         // Set the metadata
         recipe.setName(request.getName());
         recipe.setDescription(request.getDescription());
         recipe.setInstructions(request.getInstructions());
         recipe.setCookingTime(request.getCookingTime());
         recipe.setDifficulty(request.getDifficulty());
-        recipe.setImageUrl(null); // todo: use the request data if provided
+        recipe.setImageUrl(imageUrl);
         recipe.setCategory(category);
         recipe.setUser(user);
 
@@ -105,6 +115,7 @@ public class RecipeService {
      * @return the updated {@link RecipeDto} saved in the database
      * @throws ResourceNotFoundException if no recipe matches the provided ID
      */
+    @Transactional
     public RecipeDto updateRecipe(Long recipeId, UpdateRecipeRequest request) {
         // Fetch the entity from the db
         var recipe = fetchRecipe(recipeId);
@@ -120,8 +131,16 @@ public class RecipeService {
             recipe.setCookingTime(request.getCookingTime());
         if (request.getDifficulty() != null)
             recipe.setDifficulty(request.getDifficulty());
-        if (request.getImageUrl() != null)
-            recipe.setImageUrl(request.getImageUrl());
+        if (request.getImage() != null && !request.getImage().isEmpty()) {
+            // Try to upload the image to the cloud
+            var imageUrl = cloudinaryService.uploadFile(request.getImage(), "recipes");
+
+            // Delete the old image
+            cloudinaryService.deleteFile(recipe.getImageUrl());
+
+            // Set the new image
+            recipe.setImageUrl(imageUrl);
+        }
         if (request.getCategoryId() != null) {
             // Fetch the new category
             var category = categoryService.getCategoryEntity(request.getCategoryId());

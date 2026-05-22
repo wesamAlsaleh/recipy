@@ -24,7 +24,7 @@ public class RecipeController {
      */
     @PostMapping
     public ResponseEntity<?> createRecipe(
-            @Valid @RequestBody CreateRecipeRequest request,
+            @Valid @ModelAttribute CreateRecipeRequest request,
             UriComponentsBuilder uriBuilder
     ) {
         // Delegate entity creation to the service layer
@@ -44,7 +44,7 @@ public class RecipeController {
      * Endpoint to retrieve a single recipe by its ID.
      *
      * @param recipeId the unique ID of the recipe to fetch from the URL path
-     * @return a {@link ResponseEntity} containing the matching {@link } with HTTP 200 OK
+     * @return a {@link ResponseEntity} containing the matching {@link RecipeDto} with HTTP 200 OK
      */
     @GetMapping("/{id}")
     public ResponseEntity<?> getRecipe(@PathVariable("id") Long recipeId) {
@@ -65,7 +65,7 @@ public class RecipeController {
     @PatchMapping("/{id}")
     public ResponseEntity<?> updateRecipe(
             @PathVariable("id") Long recipeId,
-            @Valid @RequestBody UpdateRecipeRequest request
+            @Valid @ModelAttribute UpdateRecipeRequest request
     ) {
         // Delegate the update to the service layer
         var recipeDto = recipeService.updateRecipe(recipeId, request);

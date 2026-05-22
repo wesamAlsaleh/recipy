@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.hibernate.validator.constraints.URL;
+import org.springframework.web.multipart.MultipartFile;
 
 @AllArgsConstructor
 @Data
@@ -28,13 +28,9 @@ public class CreateRecipeRequest {
 
     @NotBlank(message = "Difficulty is required")
     @Size(max = 10, message = "Difficulty must not exceed 10 characters")
-
     private String difficulty;
 
-    @Size(max = 2048, message = "Image URL must not exceed 2048 characters")
-    @URL(message = "Image URL must be a valid URL")
-
-    private String imageUrl;  // optional
+    private MultipartFile image;
 
     @NotNull(message = "Category is required")
     private Long categoryId;

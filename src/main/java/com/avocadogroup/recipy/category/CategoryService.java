@@ -57,10 +57,16 @@ public class CategoryService {
      * @return the mapped {@link Category} representing the category entity
      * @throws ResourceNotFoundException if the category does not exist in the database
      */
-    public Category getCategoryEntity(Long categoryId){
+    public Category getCategoryEntity(Long categoryId) {
         // Fetch the category by id from the db
-        // TODO: if soft deleted throw not found exception to client
-        return fetchCategory(categoryId);
+        var category = fetchCategory(categoryId);
+
+        // if the category deleted throw not found exception to client
+        if (Boolean.TRUE.equals(category.getDeleted())) {
+            throw new ResourceNotFoundException("Category not found");
+        }
+
+        return category;
     }
 
     /**
@@ -136,14 +142,14 @@ public class CategoryService {
      * @throws ResourceNotFoundException if no category matches the provided ID
      */
     public CategoryDto updateCategory(Long categoryId, UpdateCategoryRequest request) {
-            // Fetch the entity from the db
-            Category category = fetchCategory(categoryId);
+        // Fetch the entity from the db
+        Category category = fetchCategory(categoryId);
 
-            // Update the entity name
-            category.setName(request.getName());
+        // Update the entity name
+        category.setName(request.getName());
 
-            // Return the DTO of the updated entity
-            return toDto(categoryRepository.save(category));
+        // Return the DTO of the updated entity
+        return toDto(categoryRepository.save(category));
     }
 
 

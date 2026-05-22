@@ -74,7 +74,7 @@ public class RecipeService {
         recipe.setInstructions(request.getInstructions());
         recipe.setCookingTime(request.getCookingTime());
         recipe.setDifficulty(request.getDifficulty());
-        recipe.setImageUrl(null);
+        recipe.setImageUrl(null); // todo: use the request data if provided
         recipe.setCategory(category);
         recipe.setUser(user);
 

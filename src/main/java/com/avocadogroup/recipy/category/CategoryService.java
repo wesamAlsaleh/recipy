@@ -7,6 +7,8 @@ import com.avocadogroup.recipy.common.exceptions.ResourceNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 public class CategoryService {
@@ -152,5 +154,19 @@ public class CategoryService {
         return toDto(categoryRepository.save(category));
     }
 
+    /**
+     * Retrieves all available categories.
+     *
+     * @return a {@link List} of {@link CategoryDto} objects representing available categories
+     */
+    public List<CategoryDto> getAllAvailableCategories() {
+        // Fetch all the available categories
+        List<Category> categories = categoryRepository.findByDeletedFalse();
+
+        // Convert each category to category dto and return as list
+        return categories.stream()
+                .map(this::toDto)
+                .toList();
+    }
 
 }

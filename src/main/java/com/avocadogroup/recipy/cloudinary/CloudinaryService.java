@@ -80,89 +80,104 @@ public class CloudinaryService {
         }
     }
 
-//    /**
-//     * Deletes a file from Cloudinary using its secure URL.
-//     *
-//     * <p>Extracts the public ID from the Cloudinary URL and deletes the file.
-//     * If deletion fails, the error is logged and swallowed so it does not
-//     * block the calling operation.</p>
-//     *
-//     * @param imageUrl the full Cloudinary secure URL of the file to delete
-//     */
-//    public void deleteFileByUrl(String imageUrl) {
-//        try {
-//            // Safety validation
-//            if (imageUrl == null || imageUrl.isBlank()) {
-//                // If null, nothing to delete
-//                return;
-//            }
-//
-//            // Parse the public ID from the full URL
-//            var publicId = extractPublicIdFromUrl(imageUrl);
-//
-//            // If parsing failed
-//            if (publicId == null) {
-//                // Log the warning
-//                log.warn("Could not extract public ID from Cloudinary URL: {}", imageUrl);
-//
-//                // Exit without throwing since we can't proceed
-//                return;
-//            }
-//
-//            // Delegate to the public-ID-based delete method
-//            deleteFile(publicId);
-//        } catch (Exception e) { // Catch any unexpected errors gracefully
-//            log.warn("Failed to delete old image from Cloudinary: {}", e.getMessage()); // Log and swallow
-//        }
-//    }
-//
-//    /**
-//     * Extracts the Cloudinary public ID from a full secure URL.
-//     *
-//     * <p>Cloudinary URL format:</p>
-//     * {@code https://res.cloudinary.com/<cloud>/<type>/upload/v<version>/<folder>/<file>.<ext>}
-//     *
-//     * <p>Extracted public ID: {@code <folder>/<file>}</p>
-//     *
-//     * @param imageUrl the full Cloudinary secure URL
-//     * @return the public ID, or {@code null} if it could not be extracted
-//     */
-//    private String extractPublicIdFromUrl(String imageUrl) {
-//        try {
-//            // Parse the string as a URL object
-//            var url = new URL(imageUrl);
-//
-//            // Get the path component (e.g., /demo/image/upload/v1234/recipes/abc.jpg)
-//            var path = url.getPath();
-//
-//            // Find the "/upload/" segment in the path
-//            var uploadIndex = path.indexOf("/upload/");
-//
-//            // Check if the URL is not a Cloudinary URL (-1)
-//            if (uploadIndex == -1) {
-//                // If cannot extract public ID then return null
-//                return null;
-//            }
-//
-//            // Get everything after "/upload/"
-//            var afterUpload = path.substring(uploadIndex + "/upload/".length()); // substring(startIndex)
-//
-//            if (afterUpload.startsWith("v")) { // Check for the version prefix (e.g., "v1234/")
-//                var nextSlash = afterUpload.indexOf('/'); // Find the slash after the version
-//                if (nextSlash != -1) { // Ensure there is a slash present
-//                    afterUpload = afterUpload.substring(nextSlash + 1); // Remove the version prefix
-//                }
-//            }
-//
-//            var extIndex = afterUpload.lastIndexOf('.'); // Find the last dot for the file extension
-//            if (extIndex != -1) { // Check if an extension exists
-//                afterUpload = afterUpload.substring(0, extIndex); // Remove the file extension
-//            }
-//
-//            return afterUpload; // Return the extracted public ID (e.g., "recipes/abc")
-//        } catch (Exception e) { // Handle any malformed URL or parsing errors
-//            log.warn("Failed to parse Cloudinary URL: {}", e.getMessage()); // Log the warning
-//            return null; // Return null to indicate parsing failure
-//        }
-//    }
+    /**
+     * Deletes a file from Cloudinary using its secure URL.
+     *
+     * <p>Extracts the public ID from the Cloudinary URL and deletes the file.
+     * If deletion fails, the error is logged and swallowed so it does not
+     * block the calling operation.</p>
+     *
+     * @param imageUrl the full Cloudinary secure URL of the file to delete
+     */
+    public void deleteFileByUrl(String imageUrl) {
+        try {
+            // Safety validation
+            if (imageUrl == null || imageUrl.isBlank()) {
+                // If null, nothing to delete
+                return;
+            }
+
+            // Parse the public ID from the full URL
+            var publicId = extractPublicIdFromUrl(imageUrl);
+
+            // If parsing failed
+            if (publicId == null) {
+                // Log the warning
+                log.warn("Could not extract public ID from Cloudinary URL: {}", imageUrl);
+
+                // Exit without throwing since we can't proceed
+                return;
+            }
+
+            // Delegate to the public-ID-based delete method
+            deleteFile(publicId);
+        } catch (Exception e) { // Catch any unexpected errors gracefully
+            log.warn("Failed to delete old image from Cloudinary: {}", e.getMessage()); // Log and swallow
+        }
+    }
+
+    /**
+     * Extracts the Cloudinary public ID from a full secure URL.
+     *
+     * <p>Cloudinary URL format:</p>
+     * {@code https://res.cloudinary.com/<cloud>/<type>/upload/v<version>/<folder>/<file>.<ext>}
+     *
+     * <p>Extracted public ID: {@code <folder>/<file>} (no extension)</p>
+     *
+     * <p>Example:</p>
+     * <pre>
+     *   Input:  https://res.cloudinary.com/dcl9bmfnv/image/upload/v1779484079/recipes/v0vmtexmwppnbcevmli1.jpg
+     *   Output: recipes/v0vmtexmwppnbcevmli1.jpg
+     * </pre>
+     *
+     * @param imageUrl the full Cloudinary secure URL
+     * @return the public ID without file extension, or {@code null} if extraction failed
+     */
+    private String extractPublicIdFromUrl(String imageUrl) {
+        try {
+            // Parse the string as a URL object
+            var url = new URL(imageUrl);
+
+            // Get the path component (e.g., /demo/image/upload/v1234/recipes/abc.jpg)
+            var path = url.getPath();
+
+            // Find the "/upload/" segment in the path
+            var uploadIndex = path.indexOf("/upload/");
+
+            // If "/upload/" doesn't exist then it's not a Cloudinary URL (-1)
+            if (uploadIndex == -1) {
+                // If cannot extract public ID then return null
+                return null;
+            }
+
+            // Get everything after "/upload/"
+            var afterUpload = path.substring(uploadIndex + "/upload/".length()); // e.g "v1234567/recipes/my-photo.jpg"
+
+            // Check for the version prefix (e.g., "v1234567/")
+            if (afterUpload.startsWith("v")) {
+                // Find the slash after the version
+                var nextSlash = afterUpload.indexOf('/');
+
+                // If slash available
+                if (nextSlash != -1) {
+                    // Remove the version prefix
+                    afterUpload = afterUpload.substring(nextSlash + 1); // e.g "recipes/my-photo.jpg"
+                }
+            }
+
+            // Find the last dot for the file extension
+            var extIndex = afterUpload.lastIndexOf('.');
+
+            // If an extension exists
+            if (extIndex != -1) {
+                // Remove the file extension
+                afterUpload = afterUpload.substring(0, extIndex);
+            }
+
+            // Return the extracted public ID
+            return afterUpload; // e.g "recipes/abc"
+        } catch (Exception e) {
+            return null; // Do nothing
+        }
+    }
 }

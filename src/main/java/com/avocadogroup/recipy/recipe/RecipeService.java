@@ -136,7 +136,7 @@ public class RecipeService {
             var imageUrl = cloudinaryService.uploadFile(request.getImage(), "recipes");
 
             // Delete the old image
-            cloudinaryService.deleteFile(recipe.getImageUrl());
+            cloudinaryService.deleteFileByUrl(recipe.getImageUrl());
 
             // Set the new image
             recipe.setImageUrl(imageUrl);

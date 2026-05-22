@@ -8,4 +8,5 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor
 @RequestMapping("/api/categories")
 public class CategoryController {
+    // todo: List all the available categories
 }

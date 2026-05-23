@@ -5,6 +5,7 @@ import com.avocadogroup.recipy.user.User;
 import com.avocadogroup.recipy.verificationToken.VerificationTokenRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 
@@ -45,9 +46,9 @@ public class UserSessionService {
      * @return the token string confirming the successful completion of the revocation
      * @throws ResourceNotFoundException if the provided token does not match any existing session record
      */
+    @Transactional
     public String revokeSession(String token) {
         // Fetch the token from the sessions record
-        // TODO: refactor this line
         var tokenSession = userSessionsRepository.findByToken(token)
                 .orElseThrow(() -> new ResourceNotFoundException("Invalid session"));
 
@@ -72,6 +73,7 @@ public class UserSessionService {
      *
      * @param userId the unique identifier of the user whose sessions should be revoked
      */
+    @Transactional
     public void revokeAllSessions(Long userId) {
         // Fetch all non revoked user sessions
         var userSessions = userSessionsRepository.findAllByUserIdAndRevokedFalse(userId);

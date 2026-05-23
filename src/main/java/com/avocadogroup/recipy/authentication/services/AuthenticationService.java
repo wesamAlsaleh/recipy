@@ -3,14 +3,17 @@ package com.avocadogroup.recipy.authentication.services;
 import com.avocadogroup.recipy.authentication.UserDetailsImpl;
 import com.avocadogroup.recipy.authentication.dtos.AuthenticationTokensResponse;
 import com.avocadogroup.recipy.authentication.dtos.ChangePasswordRequest;
+import com.avocadogroup.recipy.authentication.dtos.ForgotPasswordRequest;
 import com.avocadogroup.recipy.authentication.dtos.LoginUserRequest;
 import com.avocadogroup.recipy.authentication.dtos.RegisterUserRequest;
+import com.avocadogroup.recipy.authentication.dtos.ResetPasswordRequest;
 import com.avocadogroup.recipy.common.exceptions.DuplicateResourceException;
 import com.avocadogroup.recipy.common.exceptions.ResourceNotFoundException;
 import com.avocadogroup.recipy.common.exceptions.UnauthorizedException;
 import com.avocadogroup.recipy.user.*;
 import com.avocadogroup.recipy.user.dtos.UserDto;
 import com.avocadogroup.recipy.userSession.UserSessionService;
+import com.avocadogroup.recipy.passwordResetToken.PasswordResetTokenService;
 import com.avocadogroup.recipy.verificationToken.VerificationTokenService;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,6 +35,7 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final VerificationTokenService verificationTokenService;
+    private final PasswordResetTokenService passwordResetTokenService;
     private final UserSessionService userSessionService;
     private final UserService userService;
 
@@ -217,7 +221,7 @@ public class AuthenticationService {
      * @return A {@link UserDto} reflecting the updated user state.
      * @throws BadCredentialsException If the current password provided is incorrect.
      */
-    @Transactional //
+    @Transactional
     public UserDto changePassword(ChangePasswordRequest request) {
         // Get the user who made the request
         var userId = getUserIdFromSecurityContext();
@@ -244,11 +248,42 @@ public class AuthenticationService {
     }
 
     /**
+     * Initiates the password reset flow by sending a reset link to the user's email.
+     *
+     * @param request The {@link ForgotPasswordRequest} containing the user's email address
+     */
+    public String forgotPassword(ForgotPasswordRequest request) {
+        // Send the reset email
+        return passwordResetTokenService.sendResetPasswordEmail(request.getEmail());
+    }
+
+    /**
+     * Resets the user's password using a valid reset token.
+     *
+     * @param request The {@link ResetPasswordRequest} containing the token and new password
+     * @throws com.avocadogroup.recipy.common.exceptions.ResourceNotFoundException if the token is invalid
+     * @throws com.avocadogroup.recipy.common.exceptions.BadRequestException       if the token is used or expired
+     */
+    @Transactional // Ensures rollback on failure
+    public void resetPassword(ResetPasswordRequest request) {
+        // Validate the token and get the associated user
+        var user = passwordResetTokenService.verifyAndConsumeToken(request.getToken());
+
+        // Encrypts the new password
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+
+        // Revoke all active sessions so stolen tokens become invalid after password change
+        revokeAllUserSessions(user.getId());
+
+        // Updates the persistence layer
+        userRepository.save(user);
+    }
+
+    /**
      * Revokes all active sessions for a given user.
      *
      * @param userId The unique identifier of the user whose sessions should be revoked.
      */
-    @Transactional
     public void revokeAllUserSessions(Long userId) {
         // Try to revoke the sessions
         userSessionService.revokeAllSessions(userId);

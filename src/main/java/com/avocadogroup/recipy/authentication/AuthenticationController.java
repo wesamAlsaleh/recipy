@@ -164,6 +164,7 @@ public class AuthenticationController {
 
     /**
      * Resets the user's password using a valid reset token.
+     * TODO: for the frontend, the token in the parameter, so @RequestParam is needed!
      *
      * @param request The {@link ResetPasswordRequest} containing the token and new password
      * @return A {@link ResponseEntity} with HTTP 200 OK on successful reset

@@ -103,4 +103,6 @@ public class RecipeController {
         // Return the restored entity with OK response
         return ResponseEntity.ok(recipeDto);
     }
+
+    // TODO: list recipes with pagination/filtering (by category, difficulty, etc.)
 }

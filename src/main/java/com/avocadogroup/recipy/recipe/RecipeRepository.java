@@ -9,8 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface RecipeRepository extends JpaRepository<Recipe, Long> {
-    @EntityGraph(attributePaths = "ingredients")
-        // Left join ingredients "ingredients is a field name"
+    @EntityGraph(attributePaths = {"ingredients", "category"})
+        // Left join ingredients "ingredients is a field name" and category
     Page<Recipe> findAll(@NonNull Pageable pageable);
 
     @EntityGraph(attributePaths = "category") // Left join category "category is a field name"

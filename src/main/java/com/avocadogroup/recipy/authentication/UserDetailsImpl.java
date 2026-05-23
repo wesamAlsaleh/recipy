@@ -51,6 +51,9 @@ public class UserDetailsImpl implements UserDetails, Serializable {
 
     @Override
     public boolean isEnabled() {
-        return Boolean.TRUE.equals(user.getIsActive()) && Boolean.TRUE.equals(user.getEmailVerified());
+        return !Boolean.TRUE.equals(user.getDeleted()) // deleted = false
+                && Boolean.TRUE.equals(user.getIsActive()) // active = true
+                && Boolean.TRUE.equals(user.getEmailVerified() // verified = true
+        ); // Then is enabled
     }
 }

@@ -6,7 +6,7 @@ services:
       - 8080:8080
     environment:
       SPRING_PROFILES_ACTIVE: docker
-      DB_URL: jdbc:postgresql://postgres_db:5432/recipy
+      DB_URL: jdbc:postgresql://postgres_db:5432/recipy # postgres_db is the hostname
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
       JWT_SECRET: ${JWT_SECRET}

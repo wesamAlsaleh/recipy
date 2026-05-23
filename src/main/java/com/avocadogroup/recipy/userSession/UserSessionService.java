@@ -66,4 +66,20 @@ public class UserSessionService {
         // Returns the revoked token to confirm the operation is complete
         return tokenSession.getToken();
     }
+
+    /**
+     * Invalidates and revokes all active security sessions for a specific user.
+     *
+     * @param userId the unique identifier of the user whose sessions should be revoked
+     */
+    public void revokeAllSessions(Long userId) {
+        // Fetch all non revoked user sessions
+        var userSessions = userSessionsRepository.findAllByUserIdAndRevokedFalse(userId);
+
+        // Revoke the sessions
+        userSessions.forEach(UserSession::revokeToken);
+
+        // Update the changes in a single batch
+        userSessionsRepository.saveAll(userSessions);
+    }
 }

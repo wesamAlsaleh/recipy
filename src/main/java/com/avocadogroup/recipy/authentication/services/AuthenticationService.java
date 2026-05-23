@@ -2,6 +2,7 @@ package com.avocadogroup.recipy.authentication.services;
 
 import com.avocadogroup.recipy.authentication.UserDetailsImpl;
 import com.avocadogroup.recipy.authentication.dtos.AuthenticationTokensResponse;
+import com.avocadogroup.recipy.authentication.dtos.ChangePasswordRequest;
 import com.avocadogroup.recipy.authentication.dtos.LoginUserRequest;
 import com.avocadogroup.recipy.authentication.dtos.RegisterUserRequest;
 import com.avocadogroup.recipy.common.exceptions.DuplicateResourceException;
@@ -13,6 +14,7 @@ import com.avocadogroup.recipy.userSession.UserSessionService;
 import com.avocadogroup.recipy.verificationToken.VerificationTokenService;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -208,61 +210,47 @@ public class AuthenticationService {
         return userSessionService.revokeSession(token);
     }
 
-//    /**
-//     * TODO: Updates the password for the currently authenticated user
-//     *
-//     * @param request A {@link ChangePasswordRequest} containing the current and new passwords.
-//     * @return A {@link UserDto} reflecting the updated user state.
-//     * @throws org.springframework.security.authentication.BadCredentialsException If the current password provided is incorrect.
-//     */
-//    public UserDto changePassword(ChangePasswordRequest request) {
-//        // Get the user who made the request
-//        var userId = getUserIdFromSecurityContext();
-//
-//        // Get the user entity
-//        var user = userRepository.findById(userId)
-//                .orElseThrow(() -> new ResourceNotFoundException("User not found")); // This should never throw since the user is authenticated
-//
-//        // Validates the current password before permitting the change
-//        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
-//            throw new BadCredentialsException("The current password you entered is incorrect.");
-//        }
-//
-//        // Encrypts the new password
-//        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-//
-//        // Updates the persistence layer
-//        userRepository.save(user);
-//
-//        // Revoke all active sessions so stolen tokens become invalid after password change
-//        revokeAllUserSessions(userId);
-//
-//        // Return the user as UserDto format
-//        return userMapper.toDto(user);
-//    }
+    /**
+     * Updates the password for the currently authenticated user
+     *
+     * @param request A {@link ChangePasswordRequest} containing the current and new passwords.
+     * @return A {@link UserDto} reflecting the updated user state.
+     * @throws BadCredentialsException If the current password provided is incorrect.
+     */
+    @Transactional //
+    public UserDto changePassword(ChangePasswordRequest request) {
+        // Get the user who made the request
+        var userId = getUserIdFromSecurityContext();
 
-//    /**
-//     * TODO: Revokes all active sessions for a given user.
-//     * <p>
-//     * This is used during password change and "logout everywhere" scenarios
-//     * to ensure all previously issued tokens are invalidated.
-//     * </p>
-//     *
-//     * @param userId The unique identifier of the user whose sessions should be revoked.
-//     */
-//    @Transactional
-//    public void revokeAllUserSessions(Long userId) {
-//        // Fetch all sessions belonging to the user
-//        var sessions = (VerificationToken) verificationTokenRepository.findAllByUserId((userId));
-//
-//        // Revoke each session that has not already been revoked
-//        for (var session : sessions) {
-//            if (!session.isRevoked()) {
-//                session.revokeToken();
-//            }
-//        }
-//
-//        // Persist all changes in a single batch
-//        userSessionsRepository.saveAll(sessions);
-//    }
+        // Get the user entity
+        var user = userService.getUser(userId); // This should never throw since the user is authenticated
+
+        // Validates the current password before permitting the change
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new BadCredentialsException("The current password you entered is incorrect.");
+        }
+
+        // Encrypts the new password
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+
+        // Revoke all active sessions so stolen tokens become invalid after password change
+        revokeAllUserSessions(userId);
+
+        // Updates the persistence layer
+        userRepository.save(user);
+
+        // Return the user as UserDto format
+        return userMapper.toDto(user);
+    }
+
+    /**
+     * Revokes all active sessions for a given user.
+     *
+     * @param userId The unique identifier of the user whose sessions should be revoked.
+     */
+    @Transactional
+    public void revokeAllUserSessions(Long userId) {
+        // Try to revoke the sessions
+        userSessionService.revokeAllSessions(userId);
+    }
 }

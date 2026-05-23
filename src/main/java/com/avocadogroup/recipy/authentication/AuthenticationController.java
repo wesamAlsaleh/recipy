@@ -1,10 +1,12 @@
 package com.avocadogroup.recipy.authentication;
 
+import com.avocadogroup.recipy.authentication.dtos.ChangePasswordRequest;
 import com.avocadogroup.recipy.authentication.dtos.LoginUserRequest;
 import com.avocadogroup.recipy.authentication.dtos.LoginUserResponse;
 import com.avocadogroup.recipy.authentication.dtos.RegisterUserRequest;
 import com.avocadogroup.recipy.authentication.services.AuthenticationService;
 import com.avocadogroup.recipy.common.exceptions.BadRequestException;
+import com.avocadogroup.recipy.user.dtos.UserDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -134,20 +136,20 @@ public class AuthenticationController {
         return ResponseEntity.noContent().build();
     }
 
-//    /**
-//     * TODO:  Endpoint for authenticated users to update their login credentials
-//     *
-//     * @param request The validated password change data.
-//     * @return A {@link ResponseEntity} containing the updated {@link UserDto}.
-//     */
-//    @PostMapping("/change-password")
-//    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
-//        // Delegates the password verification and encryption logic to the service layer
-//        var updatedUserDto = authenticationService.changePassword(request);
-//
-//        // Returns the updated user profile with a 200 OK status
-//        return ResponseEntity.ok().body(updatedUserDto);
-//    }
+    /**
+     * Endpoint for authenticated users to update their login credentials
+     *
+     * @param request The validated password change data.
+     * @return A {@link ResponseEntity} containing the updated {@link UserDto}.
+     */
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        // Delegates the password verification and encryption logic to the service layer
+        var updatedUserDto = authenticationService.changePassword(request);
+
+        // Returns the updated user profile with a 200 OK status
+        return ResponseEntity.ok().body(updatedUserDto);
+    }
 
     // TODO: Forget password
 

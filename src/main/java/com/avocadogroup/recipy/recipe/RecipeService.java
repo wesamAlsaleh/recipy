@@ -7,6 +7,7 @@ import com.avocadogroup.recipy.common.dtos.PaginatedResponse;
 import com.avocadogroup.recipy.common.exceptions.ResourceNotFoundException;
 import com.avocadogroup.recipy.recipe.dtos.CreateRecipeRequest;
 import com.avocadogroup.recipy.recipe.dtos.RecipeDto;
+import com.avocadogroup.recipy.recipe.dtos.RecipeSummaryDto;
 import com.avocadogroup.recipy.recipe.dtos.UpdateRecipeRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -111,6 +112,45 @@ public class RecipeService {
 
         // Return the DTO version of the entity
         return toDto(recipe);
+    }
+
+    /**
+     * Retrieves a paginated list of non-deleted recipes with optional filters.
+     *
+     * @param page       the zero-based page number to retrieve
+     * @param size       the number of recipes per page
+     * @param categoryId optional category ID to filter by
+     * @param difficulty optional difficulty level to filter by
+     * @return a {@link PaginatedResponse} of {@link RecipeSummaryDto} containing the requested page
+     */
+    public PaginatedResponse<RecipeSummaryDto> listRecipes(
+            int page,
+            int size,
+            Long categoryId,
+            String difficulty
+    ) {
+        // Create a pageable object with descending order by creation date
+        var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        // Fetch the paginated results from the repository
+        var pageData = recipeRepository.findByFilters(
+                categoryId,
+                difficulty,
+                pageable
+        );
+
+        List<RecipeSummaryDto> recipes = pageData.stream()
+                .map(recipeMapper::toSummaryDto)
+                .toList();
+
+        return new PaginatedResponse<>(
+                recipes,
+                pageData.getNumber(),
+                pageData.getSize(),
+                pageData.getTotalElements(),
+                pageData.getTotalPages(),
+                pageData.isLast()
+        );
     }
 
     /**

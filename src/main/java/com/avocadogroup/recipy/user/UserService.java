@@ -116,4 +116,54 @@ public class UserService {
         // Return updated user as DTO
         return toDto(user);
     }
+
+    /**
+     * Soft-deletes a user by their ID.
+     *
+     * @param id the unique identifier of the user to soft-delete
+     * @return the updated {@link UserDto} with inactive state
+     * @throws ResourceNotFoundException if no user is found with the given ID
+     */
+    @Transactional
+    public UserDto softDeleteUser(Long id) {
+        // Fetch the user
+        var user = fetchUser(id);
+
+        // If already deleted
+        if (user.getDeleted()) {
+            // Do nothing
+            return toDto(user);
+        }
+
+        // Mark as deleted and inactive
+        user.softDelete();
+
+        // Save the changes and return
+        return toDto(userRepository.save(user));
+    }
+
+    /**
+     * Restores a soft-deleted user by their ID.
+     *
+     * @param id the unique identifier of the user to restore
+     * @return the updated {@link UserDto} with active state
+     * @throws ResourceNotFoundException if no user is found with the given ID
+     */
+    @Transactional
+    public UserDto restoreUser(Long id) {
+        // Fetch the user
+        var user = fetchUser(id);
+
+        // If not deleted (already active)
+        if (!user.getDeleted()) {
+            // Do nothing
+            return toDto(user);
+        }
+
+        // Restore the user
+        user.restore();
+
+        // Save the changes and return
+        return toDto(userRepository.save(user));
+    }
 }

@@ -56,4 +56,26 @@ public class User {
     public void verify() {
         this.emailVerified = true;
     }
+
+    /**
+     * Soft-deletes this user by marking them as deleted and inactive.
+     */
+    public void softDelete() {
+        // Mark as deleted
+        this.deleted = true;
+
+        // Mark as inactive
+        this.isActive = false;
+    }
+
+    /**
+     * Restores a soft-deleted user by marking them as not deleted and active again.
+     */
+    public void restore() {
+        // Mark as not deleted
+        this.deleted = false;
+
+        // Activate the account
+        this.isActive = true;
+    }
 }

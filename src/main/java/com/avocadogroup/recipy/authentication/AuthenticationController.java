@@ -1,10 +1,9 @@
 package com.avocadogroup.recipy.authentication;
 
-import com.avocadogroup.recipy.authentication.dtos.LoginUserRequest;
-import com.avocadogroup.recipy.authentication.dtos.LoginUserResponse;
-import com.avocadogroup.recipy.authentication.dtos.RegisterUserRequest;
+import com.avocadogroup.recipy.authentication.dtos.*;
 import com.avocadogroup.recipy.authentication.services.AuthenticationService;
 import com.avocadogroup.recipy.common.exceptions.BadRequestException;
+import com.avocadogroup.recipy.user.dtos.UserDto;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -40,7 +39,7 @@ public class AuthenticationController {
     }
 
     /**
-     * Registers a new user in the system with email verification
+     * Endpoint to registers a new user in the system with email verification
      *
      * @param registerUserRequest the validated request body containing user registration data
      * @param uriBuilder          utility used to construct the URI of the newly created resource
@@ -75,7 +74,7 @@ public class AuthenticationController {
     }
 
     /**
-     * Authenticates a user and returns a JWT access token
+     * Endpoint to authenticates a user and returns a JWT access token
      *
      * @param request the validated login request containing email and password
      * @return a {@link ResponseEntity} containing the JWT access token
@@ -92,11 +91,7 @@ public class AuthenticationController {
     }
 
     /**
-     * Retrieves the profile information of the currently authenticated user.
-     * <p>
-     * This endpoint extracts the user context from the security session or token
-     * and returns a DTO containing the user's account details.
-     * </p>
+     * Endpoint to retrieves the profile information of the currently authenticated user.
      *
      * @return A {@link ResponseEntity} containing the {@code UserDto} of the requester.
      */
@@ -110,7 +105,7 @@ public class AuthenticationController {
     }
 
     /**
-     * Processes user logout by extracting and invalidating the provided JWT.
+     * Endpoint to user logout by extracting and invalidating the provided JWT.
      *
      * @param authorizationHeader The raw "Bearer [token]" string from the request headers.
      * @return A {@link ResponseEntity} with HTTP Status 204 (No Content).
@@ -134,22 +129,52 @@ public class AuthenticationController {
         return ResponseEntity.noContent().build();
     }
 
-//    /**
-//     * TODO:  Endpoint for authenticated users to update their login credentials
-//     *
-//     * @param request The validated password change data.
-//     * @return A {@link ResponseEntity} containing the updated {@link UserDto}.
-//     */
-//    @PostMapping("/change-password")
-//    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
-//        // Delegates the password verification and encryption logic to the service layer
-//        var updatedUserDto = authenticationService.changePassword(request);
-//
-//        // Returns the updated user profile with a 200 OK status
-//        return ResponseEntity.ok().body(updatedUserDto);
-//    }
+    /**
+     * Endpoint to update user login credentials
+     *
+     * @param request The validated password change data.
+     * @return A {@link ResponseEntity} containing the updated {@link UserDto}.
+     */
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        // Delegates the password verification and encryption logic to the service layer
+        var updatedUserDto = authenticationService.changePassword(request);
 
-    // TODO: Forget password
+        // Returns the updated user profile with a 200 OK status
+        return ResponseEntity.ok().body(updatedUserDto);
+    }
 
+    /**
+     * Endpoint to sends a password reset link to the specified email address.
+     *
+     * @param request The {@link ForgotPasswordRequest} containing the user's email
+     * @return A {@link ResponseEntity} with HTTP 200 OK and a generic success message
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        // Delegates the forgot password logic to the service layer
+        var forgotPasswordToken = authenticationService.forgotPassword(request);
 
+        // Return a generic success message regardless of whether the email exists
+        return ResponseEntity.ok().body(new ForgotPasswordResponse(
+                forgotPasswordToken,
+                "A password reset link has been sent."
+        ));
+    }
+
+    /**
+     * Resets the user's password using a valid reset token.
+     * TODO: for the frontend, the token in the parameter, so @RequestParam is needed!
+     *
+     * @param request The {@link ResetPasswordRequest} containing the token and new password
+     * @return A {@link ResponseEntity} with HTTP 200 OK on successful reset
+     */
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        // Delegates the password reset logic to the service layer
+        authenticationService.resetPassword(request);
+
+        // Return success confirmation
+        return ResponseEntity.ok().body(new ResetPasswordResponse("Password has been reset successfully."));
+    }
 }

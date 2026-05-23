@@ -109,5 +109,4 @@ public class VerificationTokenService {
         // Update the changes of the token
         verificationTokenRepository.save(token);
     }
-
 }

@@ -3,13 +3,20 @@ package com.avocadogroup.recipy.recipe;
 import com.avocadogroup.recipy.authentication.services.AuthenticationService;
 import com.avocadogroup.recipy.category.CategoryService;
 import com.avocadogroup.recipy.cloudinary.CloudinaryService;
+import com.avocadogroup.recipy.common.dtos.PaginatedResponse;
 import com.avocadogroup.recipy.common.exceptions.ResourceNotFoundException;
 import com.avocadogroup.recipy.recipe.dtos.CreateRecipeRequest;
 import com.avocadogroup.recipy.recipe.dtos.RecipeDto;
+import com.avocadogroup.recipy.recipe.dtos.RecipeSummaryDto;
 import com.avocadogroup.recipy.recipe.dtos.UpdateRecipeRequest;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -105,6 +112,76 @@ public class RecipeService {
 
         // Return the DTO version of the entity
         return toDto(recipe);
+    }
+
+    /**
+     * Retrieves a paginated list of non-deleted recipes with optional filters.
+     *
+     * @param page       the zero-based page number to retrieve
+     * @param size       the number of recipes per page
+     * @param categoryId optional category ID to filter by
+     * @param difficulty optional difficulty level to filter by
+     * @return a {@link PaginatedResponse} of {@link RecipeSummaryDto} containing the requested page
+     */
+    public PaginatedResponse<RecipeSummaryDto> listRecipes(
+            int page,
+            int size,
+            Long categoryId,
+            String difficulty
+    ) {
+        // Create a pageable object with descending order by creation date
+        var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        // Fetch the paginated results from the repository
+        var pageData = recipeRepository.findByFilters(
+                categoryId,
+                difficulty,
+                pageable
+        );
+
+        List<RecipeSummaryDto> recipes = pageData.stream()
+                .map(recipeMapper::toSummaryDto)
+                .toList();
+
+        return new PaginatedResponse<>(
+                recipes,
+                pageData.getNumber(),
+                pageData.getSize(),
+                pageData.getTotalElements(),
+                pageData.getTotalPages(),
+                pageData.isLast()
+        );
+    }
+
+    /**
+     * Retrieves a paginated list of all recipes including soft-deleted ones.
+     * Intended for admin use to view the complete recipe inventory.
+     *
+     * @param page the zero-based page number to retrieve
+     * @param size the number of recipes per page
+     * @return a {@link Page} of {@link RecipeDto} containing the requested page
+     */
+    public PaginatedResponse<RecipeDto> getAllRecipes(int page, int size) {
+        // Create a pageable object with descending order by creation date
+        var pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        // Fetch the paginated results from the repository
+        var pageData = recipeRepository.findAll(pageable);
+
+        // Map each Recipe entity to a RecipeDto
+        List<RecipeDto> recipes = pageData.stream()
+                .map(this::toDto)
+                .toList();
+
+        // Return paginated response with metadata and content
+        return new PaginatedResponse<>(
+                recipes,  // Page content
+                pageData.getNumber(), // Page number
+                pageData.getSize(), // Page size
+                pageData.getTotalElements(), // Page total elements
+                pageData.getTotalPages(), // Total pages
+                pageData.isLast() // Last Page
+        );
     }
 
     /**

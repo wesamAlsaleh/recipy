@@ -1,7 +1,9 @@
 package com.avocadogroup.recipy.recipe;
 
+import com.avocadogroup.recipy.common.dtos.PaginatedResponse;
 import com.avocadogroup.recipy.recipe.dtos.CreateRecipeRequest;
 import com.avocadogroup.recipy.recipe.dtos.RecipeDto;
+import com.avocadogroup.recipy.recipe.dtos.RecipeSummaryDto;
 import com.avocadogroup.recipy.recipe.dtos.UpdateRecipeRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -102,5 +104,28 @@ public class RecipeController {
 
         // Return the restored entity with OK response
         return ResponseEntity.ok(recipeDto);
+    }
+
+    /**
+     * Endpoint to retrieve a paginated list of active recipes with optional filters.
+     *
+     * @param page       the zero-based page number to retrieve (default 0)
+     * @param size       the number of recipes per page (default 10)
+     * @param categoryId optional category ID to filter by
+     * @param difficulty optional difficulty level to filter by
+     * @return a {@link ResponseEntity} containing a {@link PaginatedResponse} of {@link RecipeSummaryDto}
+     */
+    @GetMapping
+    public ResponseEntity<?> listRecipes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String difficulty
+    ) {
+        // Delegate to the service layer to fetch paginated recipes
+        var recipes = recipeService.listRecipes(page, size, categoryId, difficulty);
+
+        // Return the paginated result with HTTP 200 OK status
+        return ResponseEntity.ok(recipes);
     }
 }

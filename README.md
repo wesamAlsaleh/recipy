@@ -9,6 +9,8 @@ Recipe sharing API built with Spring Boot.
 | Admin | admin@recipy.com  | Admin@123  |
 | User  | user@recipy.com   | User@123   |
 
+---
+
 ## API Endpoints
 
 ### Authentication (`/api/auth`)
@@ -64,9 +66,24 @@ Recipe sharing API built with Spring Boot.
 | DELETE | `/users/{id}`           | Soft delete user   |
 | PUT    | `/users/{id}/restore`   | Restore user       |
 
+---
+
 ## Run with Docker
 
 ```bash
-mvn package -DskipTests
 docker compose up --build
 ```
+
+## Run Locally (IntelliJ)
+
+1. Copy `.env.example` to `.env` and fill in the values:
+```bash
+cp .env.example .env
+```
+
+2. Make sure you have a local PostgreSQL instance running and your `.env` `DB_URL` points to it:
+```
+DB_URL=jdbc:postgresql://localhost:5432/recipy
+```
+
+3. Open the project in IntelliJ, click the **Run** button
